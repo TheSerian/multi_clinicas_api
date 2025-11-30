@@ -4,7 +4,6 @@
 Este projeto consiste no desenvolvimento de uma plataforma **SaaS (Software as a Service) Multi-Tenant** voltada para a gestão de agendamentos médicos. O objetivo é fornecer a clínicas de pequeno e médio porte uma solução digital para expor suas agendas, permitir que pacientes marquem consultas online e reduzir o absenteísmo (*no-show*) através de notificações automáticas.
 
 Diferente de um software instalado localmente, esta plataforma permite que múltiplas clínicas utilizem o mesmo software, onde cada uma possui seu ambiente isolado e personalizado via subdomínio (ex: `clinica-vida.sistema.com` e `cardio-center.sistema.com`).
-
 ---
 
 ## 2. Arquitetura do Sistema
@@ -155,3 +154,9 @@ Abaixo estão listadas as entidades do banco de dados.
 ```bash
 mvn spring-boot:run
 ```
+
+## 📌 Recursos do Projeto
+
+- [Diagrama UML](https://drive.google.com/file/d/1-hSBLckVL-tVWdhuoo6YgG5EgTraQPE-/view?usp=sharing)
+- [Documentação Geral do Sistema](https://drive.google.com/file/d/1Q-_Ooygm9UTMOKrSYm10joH6w2TF6Z4-/view?usp=sharing)
+- [APIDOG](https://3z8mift3kc.apidog.io/)
