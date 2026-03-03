@@ -9,12 +9,20 @@ import com.multiclinicas.api.services.PlanoSaudeService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/planos-saude")
+@Tag(name = "Planos de Saúde", description = "Gestão de convênios e planos de saúde")
+@ApiResponses(value = {
+        @ApiResponse(responseCode = "401", description = "Não Autenticado (Token ausente ou inválido)"),
+        @ApiResponse(responseCode = "403", description = "Não Autorizado (Sem permissão de acesso ou Tenant inativo)")
+})
 public class PlanoSaudeController {
 
     private final PlanoSaudeService planoSaudeService;

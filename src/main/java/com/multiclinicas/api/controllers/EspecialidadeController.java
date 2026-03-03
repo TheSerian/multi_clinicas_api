@@ -6,6 +6,9 @@ import com.multiclinicas.api.dtos.EspecialidadeDTO;
 import com.multiclinicas.api.mappers.EspecialidadeMapper;
 import com.multiclinicas.api.models.Especialidade;
 import com.multiclinicas.api.services.EspecialidadeService;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -17,6 +20,11 @@ import java.util.List;
 @RestController
 @RequestMapping("/especialidades")
 @RequiredArgsConstructor
+@Tag(name = "Especialidades", description = "Gestão de especialidades médicas da clínica")
+@ApiResponses(value = {
+        @ApiResponse(responseCode = "401", description = "Não Autenticado (Token ausente ou inválido)"),
+        @ApiResponse(responseCode = "403", description = "Não Autorizado (Sem permissão de acesso ou Tenant inativo)")
+})
 public class EspecialidadeController {
 
     private final EspecialidadeService especialidadeService;

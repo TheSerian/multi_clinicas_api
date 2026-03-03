@@ -17,16 +17,25 @@ import org.springframework.web.bind.annotation.RestController;
 import com.multiclinicas.api.config.tenant.TenantContext;
 import com.multiclinicas.api.dtos.MedicoCreateDTO;
 import com.multiclinicas.api.dtos.MedicoDTO;
+import com.multiclinicas.api.dtos.MedicoUpdateDTO;
 import com.multiclinicas.api.mappers.MedicoMapper;
 import com.multiclinicas.api.models.Medico;
 import com.multiclinicas.api.services.MedicoService;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/medicos")
 @RequiredArgsConstructor
+@Tag(name = "Médicos", description = "Gestão de médicos da clínica")
+@ApiResponses(value = {
+        @ApiResponse(responseCode = "401", description = "Não Autenticado (Token ausente ou inválido)"),
+        @ApiResponse(responseCode = "403", description = "Não Autorizado (Sem permissão de acesso ou Tenant inativo)")
+})
 public class MedicoController {
 
     private final MedicoService medicoService;
@@ -86,7 +95,7 @@ public class MedicoController {
 
     @PutMapping("/{id}")
     public ResponseEntity<MedicoDTO> update(@PathVariable Long id,
-            @RequestBody @Valid MedicoCreateDTO dto) {
+            @RequestBody @Valid MedicoUpdateDTO dto) {
         Long clinicId = TenantContext.getClinicId();
 
         Medico medicoAtualizado = medicoMapper.toEntity(dto);

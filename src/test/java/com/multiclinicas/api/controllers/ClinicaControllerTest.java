@@ -36,6 +36,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import({ WebConfig.class, TenantInterceptor.class })
 class ClinicaControllerTest {
 
+    @org.springframework.test.context.bean.override.mockito.MockitoBean
+    private com.multiclinicas.api.config.JwtAuthenticationFilter jwtAuthenticationFilter;
+
+
     @Autowired
     private MockMvc mockMvc;
 
@@ -55,7 +59,10 @@ class ClinicaControllerTest {
     void setup() {
         // Necessário para o TenantInterceptor, mesmo que excluído, para garantir que o
         // contexto suba
-        when(clinicaRepository.existsById(any())).thenReturn(true);
+        com.multiclinicas.api.models.Clinica clinica = new com.multiclinicas.api.models.Clinica();
+        clinica.setId(1L);
+        clinica.setAtivo(true);
+        when(clinicaRepository.findById(any())).thenReturn(java.util.Optional.of(clinica));
     }
 
     @Test
@@ -111,13 +118,13 @@ class ClinicaControllerTest {
     @DisplayName("Deve criar clínica com sucesso")
     void shouldCreateClinicaSuccessfully() throws Exception {
         // Given
-        ClinicaCreateDTO createDTO = new ClinicaCreateDTO("Clinica Nova", "clinica-nova", true);
+        ClinicaCreateDTO createDTO = new ClinicaCreateDTO("Clinica Nova", "clinica-nova", true, "Admin", "admin@teste.com", "senha123");
         Clinica clinica = new Clinica();
         clinica.setId(1L);
         ClinicaDTO responseDTO = new ClinicaDTO(1L, "Clinica Nova", "clinica-nova", true, null);
 
         when(clinicaMapper.toEntity(any(ClinicaCreateDTO.class))).thenReturn(clinica);
-        when(clinicaService.create(any(Clinica.class))).thenReturn(clinica);
+        when(clinicaService.create(any(Clinica.class), any(), any(), any())).thenReturn(clinica);
         when(clinicaMapper.toDTO(clinica)).thenReturn(responseDTO);
 
         // When & Then
@@ -133,7 +140,7 @@ class ClinicaControllerTest {
     @DisplayName("Deve retornar 400 ao criar clínica com dados inválidos")
     void shouldReturn400WhenCreatingInvalidClinica() throws Exception {
         // Given
-        ClinicaCreateDTO invalidDTO = new ClinicaCreateDTO("", "INVALID SUBDOMAIN", true);
+        ClinicaCreateDTO invalidDTO = new ClinicaCreateDTO("", "INVALID SUBDOMAIN", true, "123", "Rua A", "Cidade A");
 
         // When & Then
         mockMvc.perform(post("/clinicas")
@@ -147,12 +154,13 @@ class ClinicaControllerTest {
     void shouldUpdateClinicaSuccessfully() throws Exception {
         // Given
         Long id = 1L;
-        ClinicaCreateDTO updateDTO = new ClinicaCreateDTO("Clinica Atualizada", "clinica-atualizada", true);
+        com.multiclinicas.api.dtos.ClinicaUpdateDTO updateDTO = new com.multiclinicas.api.dtos.ClinicaUpdateDTO(
+                "Clinica Atualizada", "clinica-atualizada", true);
         Clinica clinica = new Clinica();
         clinica.setId(id);
         ClinicaDTO responseDTO = new ClinicaDTO(id, "Clinica Atualizada", "clinica-atualizada", true, null);
 
-        when(clinicaMapper.toEntity(any(ClinicaCreateDTO.class))).thenReturn(clinica);
+        when(clinicaMapper.toEntity(any(com.multiclinicas.api.dtos.ClinicaUpdateDTO.class))).thenReturn(clinica);
         when(clinicaService.update(eq(id), any(Clinica.class))).thenReturn(clinica);
         when(clinicaMapper.toDTO(clinica)).thenReturn(responseDTO);
 

@@ -35,9 +35,13 @@ class TenantInterceptorTest {
     }
 
     @Test
-    void preHandle_ShouldReturnTrue_WhenHeaderIsValidAndClinicExists() {
+    void preHandle_ShouldReturnTrue_WhenHeaderIsValidAndClinicExists() throws Exception {
+        when(request.getMethod()).thenReturn("GET");
         when(request.getHeader("X-Clinic-ID")).thenReturn("1");
-        when(clinicaRepository.existsById(1L)).thenReturn(true);
+        com.multiclinicas.api.models.Clinica clinica = new com.multiclinicas.api.models.Clinica();
+        clinica.setId(1L);
+        clinica.setAtivo(true);
+        when(clinicaRepository.findById(1L)).thenReturn(java.util.Optional.of(clinica));
 
         boolean result = tenantInterceptor.preHandle(request, response, new Object());
 
@@ -47,6 +51,7 @@ class TenantInterceptorTest {
 
     @Test
     void preHandle_ShouldThrowException_WhenHeaderIsMissing() {
+        when(request.getMethod()).thenReturn("GET");
         when(request.getHeader("X-Clinic-ID")).thenReturn(null);
 
         assertThrows(IllegalArgumentException.class,
@@ -55,6 +60,7 @@ class TenantInterceptorTest {
 
     @Test
     void preHandle_ShouldThrowException_WhenHeaderIsBlank() {
+        when(request.getMethod()).thenReturn("GET");
         when(request.getHeader("X-Clinic-ID")).thenReturn("");
 
         assertThrows(IllegalArgumentException.class,
@@ -63,6 +69,7 @@ class TenantInterceptorTest {
 
     @Test
     void preHandle_ShouldThrowException_WhenHeaderIsNotANumber() {
+        when(request.getMethod()).thenReturn("GET");
         when(request.getHeader("X-Clinic-ID")).thenReturn("abc");
 
         assertThrows(IllegalArgumentException.class,
@@ -71,10 +78,26 @@ class TenantInterceptorTest {
 
     @Test
     void preHandle_ShouldThrowException_WhenClinicDoesNotExist() {
+        when(request.getMethod()).thenReturn("GET");
         when(request.getHeader("X-Clinic-ID")).thenReturn("999");
-        when(clinicaRepository.existsById(999L)).thenReturn(false);
+        when(clinicaRepository.findById(999L)).thenReturn(java.util.Optional.empty());
 
         assertThrows(ResourceNotFoundException.class,
                 () -> tenantInterceptor.preHandle(request, response, new Object()));
+    }
+
+    @Test
+    void preHandle_ShouldReturnFalse_WhenClinicIsInactive() throws Exception {
+        when(request.getMethod()).thenReturn("GET");
+        when(request.getHeader("X-Clinic-ID")).thenReturn("1");
+        com.multiclinicas.api.models.Clinica clinica = new com.multiclinicas.api.models.Clinica();
+        clinica.setId(1L);
+        clinica.setAtivo(false);
+        when(clinicaRepository.findById(1L)).thenReturn(java.util.Optional.of(clinica));
+
+        boolean result = tenantInterceptor.preHandle(request, response, new Object());
+
+        assertFalse(result);
+        verify(response).sendError(HttpServletResponse.SC_FORBIDDEN, "Tenant inativo");
     }
 }

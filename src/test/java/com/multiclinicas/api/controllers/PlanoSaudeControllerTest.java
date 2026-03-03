@@ -32,6 +32,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import({ WebConfig.class, TenantInterceptor.class })
 class PlanoSaudeControllerTest {
 
+    @org.springframework.test.context.bean.override.mockito.MockitoBean
+    private com.multiclinicas.api.config.JwtAuthenticationFilter jwtAuthenticationFilter;
+
+
     @Autowired
     private MockMvc mockMvc;
 
@@ -49,7 +53,10 @@ class PlanoSaudeControllerTest {
 
     @BeforeEach
     void setup() {
-        when(clinicaRepository.existsById(1L)).thenReturn(true);
+        com.multiclinicas.api.models.Clinica clinica = new com.multiclinicas.api.models.Clinica();
+        clinica.setId(1L);
+        clinica.setAtivo(true);
+        when(clinicaRepository.findById(1L)).thenReturn(java.util.Optional.of(clinica));
     }
 
     @Test

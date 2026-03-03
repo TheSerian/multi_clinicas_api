@@ -42,6 +42,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import({ WebConfig.class, TenantInterceptor.class })
 class PacienteControllerTest {
 
+    @org.springframework.test.context.bean.override.mockito.MockitoBean
+    private com.multiclinicas.api.config.JwtAuthenticationFilter jwtAuthenticationFilter;
+
+
         @Autowired
         private MockMvc mockMvc;
 
@@ -70,7 +74,10 @@ class PacienteControllerTest {
         void setup() {
                 TenantContext.setClinicId(CLINIC_ID);
 
-                when(clinicaRepository.existsById(any())).thenReturn(true);
+                com.multiclinicas.api.models.Clinica clinica = new com.multiclinicas.api.models.Clinica();
+        clinica.setId(1L);
+        clinica.setAtivo(true);
+        when(clinicaRepository.findById(any())).thenReturn(java.util.Optional.of(clinica));
 
                 CreateEnderecoDTO enderecoCreate = new CreateEnderecoDTO(
                                 "00000-000", "rua 3", "1", "casa", "Centro", "Recife", "PE", "brasil");

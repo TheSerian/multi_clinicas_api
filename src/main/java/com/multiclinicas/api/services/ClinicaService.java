@@ -8,7 +8,9 @@ public interface ClinicaService {
 
     Clinica findById(Long id);
 
-    Clinica create(Clinica clinica);
+    Clinica findBySubdominio(String subdominio);
+
+    Clinica create(Clinica clinica, String adminNome, String adminEmail, String adminSenha);
 
     Clinica update(Long id, Clinica clinica);
 

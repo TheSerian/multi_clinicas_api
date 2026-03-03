@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -29,6 +30,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.multiclinicas.api.config.WebConfig;
 import com.multiclinicas.api.config.tenant.TenantContext;
 import com.multiclinicas.api.config.tenant.TenantInterceptor;
+import com.multiclinicas.api.models.Clinica;
 import com.multiclinicas.api.dtos.AgendamentoCreateDTO;
 import com.multiclinicas.api.dtos.AgendamentoDTO;
 import com.multiclinicas.api.dtos.AgendamentoRemarcarDTO;
@@ -41,11 +43,16 @@ import com.multiclinicas.api.models.enums.StatusAgendamento;
 import com.multiclinicas.api.models.enums.TipoPagamento;
 import com.multiclinicas.api.repositories.ClinicaRepository;
 import com.multiclinicas.api.services.AgendamentoService;
+import com.multiclinicas.api.services.JwtService;
 
 @WebMvcTest(AgendamentoController.class)
 @AutoConfigureMockMvc(addFilters = false)
 @Import({ WebConfig.class, TenantInterceptor.class })
 class AgendamentoControllerTest {
+
+    @org.springframework.test.context.bean.override.mockito.MockitoBean
+    private com.multiclinicas.api.config.JwtAuthenticationFilter jwtAuthenticationFilter;
+
 
     @Autowired
     private MockMvc mockMvc;
@@ -61,6 +68,9 @@ class AgendamentoControllerTest {
     @MockitoBean
     private ClinicaRepository clinicaRepository;
 
+    @MockitoBean
+    private JwtService jwtService;
+
     private final Long CLINIC_ID = 1L;
 
     private AgendamentoDTO agendamentoDTO;
@@ -69,7 +79,11 @@ class AgendamentoControllerTest {
     @BeforeEach
     void setUp() {
         TenantContext.setClinicId(CLINIC_ID);
-        when(clinicaRepository.existsById(any())).thenReturn(true);
+
+        Clinica clinica = new Clinica();
+        clinica.setId(CLINIC_ID);
+        clinica.setAtivo(true);
+        when(clinicaRepository.findById(any())).thenReturn(Optional.of(clinica));
 
         objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());

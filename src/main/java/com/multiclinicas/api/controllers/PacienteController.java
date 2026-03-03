@@ -24,9 +24,18 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.http.HttpStatus;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+
 @RestController
 @RequestMapping("/pacientes")
 @RequiredArgsConstructor
+@Tag(name = "Pacientes", description = "Gestão de pacientes da clínica")
+@ApiResponses(value = {
+        @ApiResponse(responseCode = "401", description = "Não Autenticado (Token ausente ou inválido)"),
+        @ApiResponse(responseCode = "403", description = "Não Autorizado (Sem permissão de acesso ou Tenant inativo)")
+})
 public class PacienteController {
 
     private final PacienteService pacienteService;

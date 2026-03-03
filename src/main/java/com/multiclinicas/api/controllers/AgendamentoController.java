@@ -24,6 +24,8 @@ import com.multiclinicas.api.models.Agendamento;
 import com.multiclinicas.api.services.AgendamentoService;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +34,10 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/agendamentos")
 @RequiredArgsConstructor
 @Tag(name = "Agendamentos", description = "Gestão de marcação de consultas")
+@ApiResponses(value = {
+        @ApiResponse(responseCode = "401", description = "Não Autenticado (Token ausente ou inválido)"),
+        @ApiResponse(responseCode = "403", description = "Não Autorizado (Sem permissão de acesso ou Tenant inativo)")
+})
 public class AgendamentoController {
 
     private final AgendamentoService agendamentoService;

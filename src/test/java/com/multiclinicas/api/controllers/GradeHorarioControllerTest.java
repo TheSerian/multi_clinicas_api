@@ -39,6 +39,10 @@ import com.multiclinicas.api.services.GradeHorarioService;
 @Import({ WebConfig.class, TenantInterceptor.class })
 class GradeHorarioControllerTest {
 
+    @org.springframework.test.context.bean.override.mockito.MockitoBean
+    private com.multiclinicas.api.config.JwtAuthenticationFilter jwtAuthenticationFilter;
+
+
     @Autowired
     private MockMvc mockMvc;
 
@@ -62,7 +66,10 @@ class GradeHorarioControllerTest {
 
     @BeforeEach
     void setup() {
-        when(clinicaRepository.existsById(clinicId)).thenReturn(true);
+        com.multiclinicas.api.models.Clinica clinica = new com.multiclinicas.api.models.Clinica();
+        clinica.setId(clinicId);
+        clinica.setAtivo(true);
+        when(clinicaRepository.findById(clinicId)).thenReturn(java.util.Optional.of(clinica));
 
         LocalTime inicio = LocalTime.of(8, 0);
         LocalTime fim = LocalTime.of(12, 0);

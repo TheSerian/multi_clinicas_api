@@ -23,6 +23,14 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class ClinicaServiceTest {
 
+    @org.mockito.Mock
+    private com.multiclinicas.api.repositories.UsuarioAdminRepository usuarioAdminRepository;
+
+
+    @org.mockito.Mock
+    private org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
+
+
     @Mock
     private ClinicaRepository clinicaRepository;
 
@@ -91,9 +99,10 @@ class ClinicaServiceTest {
 
         when(clinicaRepository.existsBySubdominio("clinica-teste")).thenReturn(false);
         when(clinicaRepository.save(any(Clinica.class))).thenReturn(clinica);
+        when(passwordEncoder.encode(any())).thenReturn("encodedPassword");
 
         // When
-        Clinica result = clinicaService.create(clinica);
+        Clinica result = clinicaService.create(clinica, "Admin", "admin@teste.local", "123456");
 
         // Then
         assertThat(result).isNotNull();
@@ -111,7 +120,7 @@ class ClinicaServiceTest {
         when(clinicaRepository.existsBySubdominio("clinica-existente")).thenReturn(true);
 
         // When & Then
-        assertThatThrownBy(() -> clinicaService.create(clinica))
+        assertThatThrownBy(() -> clinicaService.create(clinica, "Admin", "admin@teste.local", "123456"))
                 .isInstanceOf(ResourceConflictException.class)
                 .hasMessageContaining("Subdomínio já está em uso");
 

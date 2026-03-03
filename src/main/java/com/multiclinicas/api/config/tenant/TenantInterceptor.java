@@ -16,7 +16,13 @@ public class TenantInterceptor implements HandlerInterceptor {
     private final ClinicaRepository clinicaRepository;
 
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
+            throws Exception {
+        // Ignora requisições de pre-flight do CORS
+        if (request.getMethod().equalsIgnoreCase("OPTIONS")) {
+            return true;
+        }
+
         String clinicIdHeader = request.getHeader("X-Clinic-ID");
 
         // 1. Valida se o header está presente
@@ -27,9 +33,15 @@ public class TenantInterceptor implements HandlerInterceptor {
         try {
             Long clinicId = Long.parseLong(clinicIdHeader);
 
-            // 2. Valida se a clínica realmente existe no Banco de Dados
-            if (!clinicaRepository.existsById(clinicId)) {
+            // 2. Valida se a clínica existe e está ativa
+            java.util.Optional<com.multiclinicas.api.models.Clinica> clinicaOpt = clinicaRepository.findById(clinicId);
+            if (clinicaOpt.isEmpty()) {
                 throw new ResourceNotFoundException("Clínica informada no cabeçalho não encontrada: " + clinicId);
+            }
+
+            if (!clinicaOpt.get().getAtivo()) {
+                response.sendError(HttpServletResponse.SC_FORBIDDEN, "Tenant inativo");
+                return false;
             }
 
             // 3. Define no contexto para uso global

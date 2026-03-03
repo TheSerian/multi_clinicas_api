@@ -11,12 +11,18 @@ import java.util.List;
 
 import com.multiclinicas.api.exceptions.BusinessException;
 import com.multiclinicas.api.exceptions.ResourceConflictException;
+import com.multiclinicas.api.models.UsuarioAdmin;
+import com.multiclinicas.api.models.enums.Role;
+import com.multiclinicas.api.repositories.UsuarioAdminRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Service
 @RequiredArgsConstructor
 public class ClinicaServiceImpl implements ClinicaService {
 
     private final ClinicaRepository clinicaRepository;
+    private final UsuarioAdminRepository usuarioAdminRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public List<Clinica> findAll() {
@@ -30,12 +36,29 @@ public class ClinicaServiceImpl implements ClinicaService {
     }
 
     @Override
+    public Clinica findBySubdominio(String subdominio) {
+        return clinicaRepository.findBySubdominio(subdominio)
+                .orElseThrow(() -> new ResourceNotFoundException("Clínica não encontrada para o subdomínio: " + subdominio));
+    }
+
+    @Override
     @Transactional
-    public Clinica create(Clinica clinica) {
+    public Clinica create(Clinica clinica, String adminNome, String adminEmail, String adminSenha) {
         if (clinicaRepository.existsBySubdominio(clinica.getSubdominio())) {
             throw new ResourceConflictException("Subdomínio já está em uso: " + clinica.getSubdominio());
         }
-        return clinicaRepository.save(clinica);
+        Clinica novaClinica = clinicaRepository.save(clinica);
+
+        UsuarioAdmin admin = new UsuarioAdmin();
+        admin.setClinica(novaClinica);
+        admin.setNome(adminNome);
+        admin.setEmail(adminEmail);
+        admin.setSenhaHash(passwordEncoder.encode(adminSenha));
+        admin.setRole(Role.ADMIN);
+
+        usuarioAdminRepository.save(admin);
+
+        return novaClinica;
     }
 
     @Override

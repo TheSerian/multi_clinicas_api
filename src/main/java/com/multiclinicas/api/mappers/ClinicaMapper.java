@@ -30,4 +30,15 @@ public class ClinicaMapper {
         clinica.setAtivo(dto.ativo() != null ? dto.ativo() : true);
         return clinica;
     }
+
+    public Clinica toEntity(com.multiclinicas.api.dtos.ClinicaUpdateDTO dto) {
+        if (dto == null) {
+            return null;
+        }
+        Clinica clinica = new Clinica();
+        clinica.setNomeFantasia(dto.nomeFantasia());
+        clinica.setSubdominio(dto.subdominio());
+        clinica.setAtivo(dto.ativo() != null ? dto.ativo() : true);
+        return clinica;
+    }
 }

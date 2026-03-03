@@ -80,8 +80,11 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleGeneralException(Exception ex) {
+        log.error("Erro inesperado capturado pelo GlobalExceptionHandler:", ex);
         Map<String, String> error = new HashMap<>();
         error.put("error", "Internal Server Error");
         error.put("message", "Ocorreu um erro inesperado. Entre em contato com o suporte.");

@@ -19,12 +19,20 @@ import com.multiclinicas.api.mappers.GradeHorarioMapper;
 import com.multiclinicas.api.models.GradeHorario;
 import com.multiclinicas.api.services.GradeHorarioService;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/grade-horario")
 @RequiredArgsConstructor
+@Tag(name = "Grade de Horários", description = "Gestão de disponibilidade dos médicos")
+@ApiResponses(value = {
+        @ApiResponse(responseCode = "401", description = "Não Autenticado (Token ausente ou inválido)"),
+        @ApiResponse(responseCode = "403", description = "Não Autorizado (Sem permissão de acesso ou Tenant inativo)")
+})
 public class GradeHorarioController {
 
     private final GradeHorarioService gradeHorarioService;

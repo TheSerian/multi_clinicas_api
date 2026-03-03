@@ -13,4 +13,8 @@ public interface UsuarioAdminRepository extends JpaRepository<UsuarioAdmin, Long
     List<UsuarioAdmin> findAllByClinicaId(Long clinicId);
 
     Optional<UsuarioAdmin> findByIdAndClinicaId(Long id, Long clinicId);
+
+    Optional<UsuarioAdmin> findByEmailAndClinicaId(String email, Long clinicId);
+
+    Optional<UsuarioAdmin> findByEmailAndClinicaIsNull(String email);
 }

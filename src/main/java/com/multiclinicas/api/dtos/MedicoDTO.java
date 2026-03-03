@@ -5,6 +5,7 @@ import java.util.Set;
 public record MedicoDTO (
 			Long id,
 			String nome,
+			String cpf,
 			String crm,
 			Long clinicId,
 			String nomeClinica, //nome fantasia da clinica
