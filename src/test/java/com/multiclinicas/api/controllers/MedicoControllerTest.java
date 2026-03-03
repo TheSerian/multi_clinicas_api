@@ -42,6 +42,10 @@ import com.multiclinicas.api.services.MedicoService;
 @Import({ WebConfig.class, TenantInterceptor.class })
 class MedicoControllerTest {
 
+    @org.springframework.test.context.bean.override.mockito.MockitoBean
+    private com.multiclinicas.api.config.JwtAuthenticationFilter jwtAuthenticationFilter;
+
+
         @Autowired
         private MockMvc mockMvc;
 
@@ -64,7 +68,10 @@ class MedicoControllerTest {
 
         @BeforeEach
         void setup() {
-                when(clinicaRepository.existsById(clinicId)).thenReturn(true);
+                com.multiclinicas.api.models.Clinica clinica = new com.multiclinicas.api.models.Clinica();
+        clinica.setId(clinicId);
+        clinica.setAtivo(true);
+        when(clinicaRepository.findById(clinicId)).thenReturn(java.util.Optional.of(clinica));
 
                 medico = new Medico();
                 medico.setId(1L);
@@ -123,7 +130,7 @@ class MedicoControllerTest {
                 MedicoDTO dtoAtualizado = new MedicoDTO(medicoId, "Doutor House", null, null, null, null, null, null, null,
                                 Collections.emptySet(), true);
 
-                when(medicoMapper.toEntity(any(MedicoCreateDTO.class))).thenReturn(medico);
+                when(medicoMapper.toEntity(any(com.multiclinicas.api.dtos.MedicoUpdateDTO.class))).thenReturn(medico);
                 when(medicoService.update(eq(medicoId), eq(clinicId), any(Medico.class), any()))
                                 .thenReturn(medicoAtualizado);
                 when(medicoMapper.toDTO(any(Medico.class))).thenReturn(dtoAtualizado);
@@ -131,7 +138,7 @@ class MedicoControllerTest {
                 mockMvc.perform(put("/medicos/{id}", medicoId)
                                 .header("X-Clinic-ID", clinicId)
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(medicoCreateDTO)))
+                                .content(objectMapper.writeValueAsString(new com.multiclinicas.api.dtos.MedicoUpdateDTO("Doutor House", "12345-SP", 30, java.util.Collections.emptySet(), "dr.house@clinica.com", true))))
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.id").value(medicoId.longValue()))
                                 .andExpect(jsonPath("$.nome").value("Doutor House"));
@@ -141,14 +148,14 @@ class MedicoControllerTest {
         @DisplayName("Deve retornar 404 ao tentar atualizar médico inexistente")
         void shouldReturn404WhenUpdatingNonExistentMedico() throws Exception {
                 Long idNaoExistente = 99L;
-                when(medicoMapper.toEntity(any(MedicoCreateDTO.class))).thenReturn(medico);
+                when(medicoMapper.toEntity(any(com.multiclinicas.api.dtos.MedicoUpdateDTO.class))).thenReturn(medico);
                 when(medicoService.update(eq(idNaoExistente), eq(clinicId), any(Medico.class), any()))
                                 .thenThrow(new ResourceNotFoundException("Médico não encontrado."));
 
                 mockMvc.perform(put("/medicos/{id}", idNaoExistente)
                                 .header("X-Clinic-ID", clinicId)
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(medicoCreateDTO)))
+                                .content(objectMapper.writeValueAsString(new com.multiclinicas.api.dtos.MedicoUpdateDTO("Doutor House", "12345-SP", 30, java.util.Collections.emptySet(), "dr.house@clinica.com", true))))
                                 .andExpect(status().isNotFound());
         }
 

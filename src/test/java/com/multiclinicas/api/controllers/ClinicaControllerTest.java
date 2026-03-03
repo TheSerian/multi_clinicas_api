@@ -36,6 +36,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import({ WebConfig.class, TenantInterceptor.class })
 class ClinicaControllerTest {
 
+    @org.springframework.test.context.bean.override.mockito.MockitoBean
+    private com.multiclinicas.api.config.JwtAuthenticationFilter jwtAuthenticationFilter;
+
+
     @Autowired
     private MockMvc mockMvc;
 
@@ -55,7 +59,10 @@ class ClinicaControllerTest {
     void setup() {
         // Necessário para o TenantInterceptor, mesmo que excluído, para garantir que o
         // contexto suba
-        when(clinicaRepository.existsById(any())).thenReturn(true);
+        com.multiclinicas.api.models.Clinica clinica = new com.multiclinicas.api.models.Clinica();
+        clinica.setId(1L);
+        clinica.setAtivo(true);
+        when(clinicaRepository.findById(any())).thenReturn(java.util.Optional.of(clinica));
     }
 
     @Test
@@ -111,7 +118,7 @@ class ClinicaControllerTest {
     @DisplayName("Deve criar clínica com sucesso")
     void shouldCreateClinicaSuccessfully() throws Exception {
         // Given
-        ClinicaCreateDTO createDTO = new ClinicaCreateDTO("Clinica Nova", "clinica-nova", true, "12345678000199", "Rua A", "Cidade A");
+        ClinicaCreateDTO createDTO = new ClinicaCreateDTO("Clinica Nova", "clinica-nova", true, "Admin", "admin@teste.com", "senha123");
         Clinica clinica = new Clinica();
         clinica.setId(1L);
         ClinicaDTO responseDTO = new ClinicaDTO(1L, "Clinica Nova", "clinica-nova", true, null);
