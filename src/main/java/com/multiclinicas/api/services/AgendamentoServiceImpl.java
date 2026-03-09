@@ -3,6 +3,7 @@ package com.multiclinicas.api.services;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 
@@ -42,6 +43,7 @@ public class AgendamentoServiceImpl implements AgendamentoService {
     private final PacienteRepository pacienteRepository;
     private final PlanoSaudeRepository planoSaudeRepository;
     private final GradeHorarioRepository gradeHorarioRepository;
+    private final EmailService emailService;
 
     private static final Map<DayOfWeek, String> DIAS_SEMANA_PT = Map.of(
             DayOfWeek.MONDAY, "Segunda-feira",
@@ -105,7 +107,29 @@ public class AgendamentoServiceImpl implements AgendamentoService {
         agendamento.setPlanoSaude(planoSaude);
         agendamento.setObservacoes(dto.observacoes());
 
-        return agendamentoRepository.save(agendamento);
+        Agendamento agendamentoSalvo = agendamentoRepository.save(agendamento);
+        
+        if (paciente.getEmail() != null && !paciente.getEmail().trim().isEmpty()) {
+        	String dataFormatada = dto.dataConsulta().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+        	String assunto = "Confirmação de Agendamento - " + clinica.getNomeFantasia();
+        	
+        	String mensagem = String.format(
+        			"Olá, %s, seu agendamento foi confirmado com sucesso!\n\n" + 
+        			"Detalhes da consulta:\n" + 
+        			"Médico(a): Dr(a). %s\n" + 
+        			"Data: %s\n" + 
+        			"Horário: %s\n" + 
+        			"Clínica: %s\n\n" + 
+        			"Agradecemos a preferência!",
+        			paciente.getNome(),
+        			medico.getNome(),
+        			dataFormatada,
+        			horaInicio.toString(),
+        			clinica.getNomeFantasia()
+				);
+        	emailService.enviarEmail(paciente.getEmail(), assunto, mensagem);
+        }
+        return agendamentoSalvo;
     }
 
     @Override
