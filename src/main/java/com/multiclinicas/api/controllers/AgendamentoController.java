@@ -52,6 +52,12 @@ public class AgendamentoController {
         return ResponseEntity.ok(dtos);
     }
 
+    @Operation(summary = "Listar meus agendamentos", description = "Lista apenas os agendamentos do paciente autenticado")
+    @GetMapping("/me")
+    public ResponseEntity<List<AgendamentoDTO>> buscarMeusAgendamentos() {
+        return ResponseEntity.ok(agendamentoService.buscarMeusAgendamentos());
+    }
+
     @Operation(summary = "Buscar agendamento por ID", description = "Retorna um agendamento específico")
     @GetMapping("/{id}")
     public ResponseEntity<AgendamentoDTO> findById(@PathVariable Long id) {

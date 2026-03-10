@@ -16,6 +16,8 @@ public interface AgendamentoRepository extends JpaRepository<Agendamento, Long> 
 
     List<Agendamento> findAllByClinicaId(Long clinicId);
 
+    List<Agendamento> findByPacienteIdAndClinicaIdOrderByDataConsultaDescHoraInicioDesc(Long pacienteId, Long clinicId);
+
     // Busca agendamentos de um médico em uma data específica (útil para montar a
     // agenda visualmente depois)
     List<Agendamento> findByMedicoIdAndDataConsultaAndClinicaId(Long medicoId, LocalDate dataConsulta, Long clinicId);

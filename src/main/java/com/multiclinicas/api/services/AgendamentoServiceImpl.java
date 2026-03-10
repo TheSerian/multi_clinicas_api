@@ -8,14 +8,20 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.stereotype.Service;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.multiclinicas.api.config.tenant.TenantContext;
+import com.multiclinicas.api.dtos.AgendamentoDTO;
 import com.multiclinicas.api.dtos.AgendamentoCreateDTO;
 import com.multiclinicas.api.dtos.AgendamentoRemarcarDTO;
 import com.multiclinicas.api.dtos.AgendamentoStatusDTO;
 import com.multiclinicas.api.exceptions.BusinessException;
 import com.multiclinicas.api.exceptions.ResourceConflictException;
 import com.multiclinicas.api.exceptions.ResourceNotFoundException;
+import com.multiclinicas.api.mappers.AgendamentoMapper;
 import com.multiclinicas.api.models.Agendamento;
 import com.multiclinicas.api.models.Clinica;
 import com.multiclinicas.api.models.GradeHorario;
@@ -44,6 +50,7 @@ public class AgendamentoServiceImpl implements AgendamentoService {
     private final PlanoSaudeRepository planoSaudeRepository;
     private final GradeHorarioRepository gradeHorarioRepository;
     private final EmailService emailService;
+    private final AgendamentoMapper agendamentoMapper;
 
     private static final Map<DayOfWeek, String> DIAS_SEMANA_PT = Map.of(
             DayOfWeek.MONDAY, "Segunda-feira",
@@ -58,6 +65,41 @@ public class AgendamentoServiceImpl implements AgendamentoService {
     @Transactional(readOnly = true)
     public List<Agendamento> findAllByClinicId(Long clinicId) {
         return agendamentoRepository.findAllByClinicaId(clinicId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<AgendamentoDTO> buscarMeusAgendamentos() {
+        Long clinicId = TenantContext.getClinicId();
+        if (clinicId == null) {
+            throw new AccessDeniedException("Clínica não identificada na requisição.");
+        }
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication.getPrincipal() == null) {
+            throw new AccessDeniedException("Usuário não autenticado.");
+        }
+
+        boolean isPaciente = authentication.getAuthorities().stream()
+                .anyMatch(authority -> "ROLE_PACIENTE".equals(authority.getAuthority()));
+        if (!isPaciente) {
+            throw new AccessDeniedException("Acesso permitido apenas para pacientes.");
+        }
+
+        Long pacienteId;
+        try {
+            pacienteId = Long.parseLong(authentication.getPrincipal().toString());
+        } catch (NumberFormatException ex) {
+            throw new AccessDeniedException("Usuário autenticado inválido.");
+        }
+
+        pacienteRepository.findByIdAndClinicaId(pacienteId, clinicId)
+                .orElseThrow(() -> new ResourceNotFoundException("Paciente não encontrado para esta clínica"));
+
+        return agendamentoRepository.findByPacienteIdAndClinicaIdOrderByDataConsultaDescHoraInicioDesc(pacienteId, clinicId)
+                .stream()
+                .map(agendamentoMapper::toDTO)
+                .toList();
     }
 
     @Override

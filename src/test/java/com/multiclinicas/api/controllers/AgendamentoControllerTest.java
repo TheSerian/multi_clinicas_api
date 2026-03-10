@@ -119,6 +119,21 @@ class AgendamentoControllerTest {
                     .andExpect(jsonPath("$[0].id").value(1L))
                     .andExpect(jsonPath("$[0].nomePaciente").value("João Paciente"));
         }
+
+        @Test
+        @DisplayName("Deve listar apenas os agendamentos do paciente autenticado")
+        void shouldListMyAppointments() throws Exception {
+            when(agendamentoService.buscarMeusAgendamentos())
+                    .thenReturn(List.of(agendamentoDTO));
+
+            mockMvc.perform(
+                    get("/agendamentos/me")
+                            .header("X-Clinic-ID", CLINIC_ID))
+                    .andDo(print())
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$[0].id").value(1L))
+                    .andExpect(jsonPath("$[0].nomeMedico").value("Dr. House"));
+        }
     }
 
     @Nested

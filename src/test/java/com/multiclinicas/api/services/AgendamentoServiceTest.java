@@ -3,7 +3,6 @@ package com.multiclinicas.api.services;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -20,7 +19,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 
+import com.multiclinicas.api.config.tenant.TenantContext;
+import com.multiclinicas.api.dtos.AgendamentoDTO;
+import com.multiclinicas.api.mappers.AgendamentoMapper;
 import com.multiclinicas.api.dtos.AgendamentoCreateDTO;
 import com.multiclinicas.api.dtos.AgendamentoRemarcarDTO;
 import com.multiclinicas.api.dtos.AgendamentoStatusDTO;
@@ -60,6 +65,10 @@ class AgendamentoServiceTest {
     private PlanoSaudeRepository planoSaudeRepository;
     @Mock
     private GradeHorarioRepository gradeHorarioRepository;
+        @Mock
+        private EmailService emailService;
+        @Mock
+        private AgendamentoMapper agendamentoMapper;
 
     @InjectMocks
     private AgendamentoServiceImpl agendamentoService;
@@ -71,6 +80,9 @@ class AgendamentoServiceTest {
 
     @BeforeEach
     void setUp() {
+        TenantContext.setClinicId(CLINIC_ID);
+        SecurityContextHolder.clearContext();
+
         clinica = new Clinica();
         clinica.setId(CLINIC_ID);
 
@@ -94,6 +106,66 @@ class AgendamentoServiceTest {
     @Nested
     @DisplayName("Testes de Listagem")
     class ListagemTests {
+
+        @Test
+        @DisplayName("Deve listar os agendamentos do paciente autenticado")
+        void shouldListMyAppointments() {
+            Agendamento agendamento = new Agendamento();
+            agendamento.setId(1L);
+            agendamento.setClinica(clinica);
+            agendamento.setPaciente(paciente);
+            agendamento.setMedico(medico);
+            agendamento.setDataConsulta(LocalDate.now().plusDays(3));
+            agendamento.setHoraInicio(LocalTime.of(9, 0));
+            agendamento.setHoraFim(LocalTime.of(9, 30));
+            agendamento.setStatus(StatusAgendamento.AGENDADO);
+
+            AgendamentoDTO dto = new AgendamentoDTO(
+                    1L,
+                    PACIENTE_ID,
+                    "Paciente Teste",
+                    MEDICO_ID,
+                    "Médico Teste",
+                    agendamento.getDataConsulta(),
+                    agendamento.getHoraInicio(),
+                    agendamento.getHoraFim(),
+                    agendamento.getStatus(),
+                    TipoPagamento.PARTICULAR,
+                    null,
+                    null);
+
+            SecurityContextHolder.getContext().setAuthentication(
+                    new UsernamePasswordAuthenticationToken(
+                            String.valueOf(PACIENTE_ID),
+                            null,
+                            List.of(() -> "ROLE_PACIENTE")));
+
+            when(pacienteRepository.findByIdAndClinicaId(PACIENTE_ID, CLINIC_ID)).thenReturn(Optional.of(paciente));
+            when(agendamentoRepository.findByPacienteIdAndClinicaIdOrderByDataConsultaDescHoraInicioDesc(PACIENTE_ID, CLINIC_ID))
+                    .thenReturn(List.of(agendamento));
+            when(agendamentoMapper.toDTO(agendamento)).thenReturn(dto);
+
+            List<AgendamentoDTO> result = agendamentoService.buscarMeusAgendamentos();
+
+            assertThat(result).hasSize(1);
+            assertThat(result.get(0).nomeMedico()).isEqualTo("Médico Teste");
+            verify(agendamentoRepository).findByPacienteIdAndClinicaIdOrderByDataConsultaDescHoraInicioDesc(PACIENTE_ID,
+                    CLINIC_ID);
+        }
+
+        @Test
+        @DisplayName("Deve negar acesso quando o usuário autenticado não for paciente")
+        void shouldDenyAccessWhenUserIsNotPaciente() {
+            SecurityContextHolder.getContext().setAuthentication(
+                    new UsernamePasswordAuthenticationToken(
+                            "999",
+                            null,
+                            List.of(() -> "ROLE_ADMIN")));
+
+            assertThatThrownBy(() -> agendamentoService.buscarMeusAgendamentos())
+                    .isInstanceOf(AccessDeniedException.class)
+                    .hasMessageContaining("apenas para pacientes");
+        }
 
         @Test
         @DisplayName("Deve listar todos os agendamentos da clínica")

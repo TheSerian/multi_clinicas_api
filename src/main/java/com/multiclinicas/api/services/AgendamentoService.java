@@ -2,6 +2,7 @@ package com.multiclinicas.api.services;
 
 import java.util.List;
 
+import com.multiclinicas.api.dtos.AgendamentoDTO;
 import com.multiclinicas.api.dtos.AgendamentoCreateDTO;
 import com.multiclinicas.api.dtos.AgendamentoRemarcarDTO;
 import com.multiclinicas.api.dtos.AgendamentoStatusDTO;
@@ -9,6 +10,8 @@ import com.multiclinicas.api.models.Agendamento;
 
 public interface AgendamentoService {
     List<Agendamento> findAllByClinicId(Long clinicId);
+
+    List<AgendamentoDTO> buscarMeusAgendamentos();
 
     Agendamento findByIdAndClinicId(Long id, Long clinicId);
 
