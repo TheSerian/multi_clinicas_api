@@ -26,6 +26,18 @@ spring:
     baseline-on-migrate: true
     schemas: public
     clean-disabled: false
+
+  mail:
+    host: sandbox.smtp.mailtrap.io
+    port: 2525
+    username: d3f3f5f6a83c36
+    password: cf4d9bebb9e2a1
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
   
 #  # Redis Configuration
 #  data:

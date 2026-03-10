@@ -15,6 +15,8 @@ public interface PacienteRepository extends JpaRepository<Paciente, Long> {
 
     Optional<Paciente> findByIdAndClinicaId(Long id, Long clinicaId);
 
+    Optional<Paciente> findByEmailAndClinicaId(String email, Long clinicaId);
+
     boolean existsByIdAndClinicaId(Long id, Long clinicaId);
 
     void deleteByIdAndClinicaId(Long id, Long clinicaId);

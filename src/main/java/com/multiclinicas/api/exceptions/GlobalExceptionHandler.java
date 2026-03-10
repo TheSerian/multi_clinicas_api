@@ -1,14 +1,14 @@
 package com.multiclinicas.api.exceptions;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -51,6 +51,26 @@ public class GlobalExceptionHandler {
         response.put("message", "Verifique os campos obrigatórios");
         response.put("details", fieldErrors);
 
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(org.springframework.dao.DataIntegrityViolationException.class)
+    public ResponseEntity<Map<String, String>> handleDataIntegrityViolation(org.springframework.dao.DataIntegrityViolationException ex) {
+        Map<String, String> error = new HashMap<>();
+        error.put("error", "Conflito de dados");
+        error.put("message", "Já existe um registro com estes dados (CPF ou Email) nesta clínica.");
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
+    @ExceptionHandler(jakarta.validation.ConstraintViolationException.class)
+    public ResponseEntity<Map<String, Object>> handleConstraintViolation(jakarta.validation.ConstraintViolationException ex) {
+        Map<String, String> details = new HashMap<>();
+        ex.getConstraintViolations().forEach(violation -> 
+            details.put(violation.getPropertyPath().toString(), violation.getMessage())
+        );
+        Map<String, Object> response = new HashMap<>();
+        response.put("error", "Erro de validação na entidade");
+        response.put("details", details);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
