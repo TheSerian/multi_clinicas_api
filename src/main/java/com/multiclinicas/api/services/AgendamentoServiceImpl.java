@@ -18,6 +18,7 @@ import com.multiclinicas.api.dtos.AgendamentoDTO;
 import com.multiclinicas.api.dtos.AgendamentoCreateDTO;
 import com.multiclinicas.api.dtos.AgendamentoRemarcarDTO;
 import com.multiclinicas.api.dtos.AgendamentoStatusDTO;
+import com.multiclinicas.api.dtos.AgendamentoTokenDTO;
 import com.multiclinicas.api.exceptions.BusinessException;
 import com.multiclinicas.api.exceptions.ResourceConflictException;
 import com.multiclinicas.api.exceptions.ResourceNotFoundException;
@@ -244,6 +245,19 @@ public class AgendamentoServiceImpl implements AgendamentoService {
 
         agendamento.setStatus(novoStatus);
         return agendamentoRepository.save(agendamento);
+    }
+    
+    @Override
+    @Transactional
+    public Agendamento atualizarToken(Long id, Long clinicId, AgendamentoTokenDTO dto) {
+    	Agendamento agendamento = findByIdAndClinicId(id, clinicId);
+    	
+    	if (agendamento.getTipoPagamento() != TipoPagamento.CONVENIO) {
+    		throw new BusinessException("Apenas agendamentos via convênio podem receber um token de autorização");
+    	}
+    	
+    	agendamento.setTokenAutorizacao(dto.getTokenAutorizacao());
+    	return agendamentoRepository.save(agendamento);
     }
 
     private void validarHorarioFuturo(LocalDate data, LocalTime hora) {
