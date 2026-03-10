@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.multiclinicas.api.models.Agendamento;
+import com.multiclinicas.api.models.enums.StatusAgendamento;
 
 @Repository
 public interface AgendamentoRepository extends JpaRepository<Agendamento, Long> {
@@ -17,6 +18,8 @@ public interface AgendamentoRepository extends JpaRepository<Agendamento, Long> 
     List<Agendamento> findAllByClinicaId(Long clinicId);
 
     List<Agendamento> findByPacienteIdAndClinicaIdOrderByDataConsultaDescHoraInicioDesc(Long pacienteId, Long clinicId);
+    
+    List<Agendamento> findByDataConsultaAndStatus(LocalDate dataConsulta, StatusAgendamento status);
 
     // Busca agendamentos de um médico em uma data específica (útil para montar a
     // agenda visualmente depois)
